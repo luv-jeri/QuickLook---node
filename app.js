@@ -6,44 +6,44 @@ global._ = (_) => {
   __(chalk.blue.bgBlack(_));
 };
 
+const page = `
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8">  
+      <title>Hello World</title>
+      <style>
+      body{
+        display : flex;
+        justify-content : center;
+        align-items : center;
+        height : 100vh;
+        width : 100vw;
+        background-color : #333;
+        color : #fff;
+      }</style>
+      </head>
+      
+      <body>
+        <h1>Hello World</h1>
+      </body>
+  </html>
+          `;
+
 const server = http.createServer((req, res) => {
-  //  _(req); // ` Details of the request
-  // _(req.url); // ` The URL of the request
-  // __(res); // ` Details of the response
-  //# response = {}
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  if (req.url === '/') {
+    res.write('You are at the home page');
+  }
+  if (req.url === '/date') {
+    const today = new Date().toDateString();
+    res.write(today);
+  }
 
-  res.writeHead(200, { 'Content-Type': 'application/json', isOK: true });
-  //` response = {
-  //`  header : {
-  //`     'Content-Type': 'application/json'
-  //`      status: 200
-  //`  }
-  //` }
-
-  res.write(
-    JSON.stringify({
-      app: 'Node.js',
-      version: '1.0.0',
-      author: 'Rajesh',
-      url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    })
-  );
-
-  // ` response = {
-  // `    header: {
-  // `    'Content-Type': 'application/json',
-  // `    status: 200,
-  // `  },
-  // `  body: {
-  // `    app: 'Node.js',
-  // `    version: '1.0.0',
-  // `    version: '1.0.0',
-  // `    author: 'Rajesh',
-  // `    url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-  // `  },
-  // ` }
-
-  // __(res); // ` Details of the response
+  if (req.url === '/html') {
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.write(page);
+  }
   res.end();
 });
 
