@@ -1,5 +1,7 @@
 const exported_object_of_that_file = require('./logs');
 
+require('./func');  // ` will execute the code in that file.
+
 const { _e, _s, _ } = exported_object_of_that_file;
 
 console.log(module); //` (global) module object with all the properties and methods of the module

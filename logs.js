@@ -6,7 +6,7 @@ const _e = (to_show) => {
 };
 
 const _s = (to_show) => {
-  __(chalk.green.bgWhite(to_show));
+  __(chalk.blue.bgBlack(to_show));
 };
 
 const _ = (to_show) => {
