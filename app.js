@@ -1,61 +1,137 @@
+const express = require('express');
 const chalk = require('chalk');
-const http = require('http');
-const url = require('url');
 const fs = require('fs'); // to read and write files in nodejs
+const dotenv = require('dotenv');
+
+const { reader } = require('./function/reader');
+
+dotenv.config({
+  path: './config.env',
+});
+
+const { PORT } = process.env;
+
 global.__ = console.log;
 global._ = (_) => {
   __(chalk.blue.bgBlack(_));
 };
+
 const { writeFile, readFile, writeFileSync, readFileSync } = fs;
 
-//# Creating a file Synchronously
-// writeFileSync('file.txt', 'I was created by nodejs 😎');
-// writeFileSync('index.js', 'console.log("Hello World !!")');
-//# Reading a file Synchronously
-// const data = readFileSync('./file.txt', 'utf8');
-// _(data);
+const app = express();
 
-const page = readFileSync('./public/index.html', 'utf8');
+// `Middleware
+app.use(express.json()); // to parse json
 
-const server = http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
+app.use((req, res, next) => {
+  _('Authentication middleware');
+  const { key } = req.query;
+  _(key);
 
-  const parsed = url.parse(req.url); // to get the path of the url
-  const { pathname, query } = parsed;
-
-  // readFile('./ip.txt', 'utf8', (err, data) => {
-  //   if (err) {
-  //     _(err);
-  //   }
-  //   var ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
-  //   const ipData = ` ${req.url} : ${ip}`;
-
-  //   writeFile('./ip.txt', ipData + data, 'utf8', (err) => {
-  //     if (err) {
-  //       _(err);
-  //     }
-  //     _('IP list updated successfully');
-  //   });
-  // });
-
-  if (pathname === '/') {
-    res.write('You are at the home page');
+  if (key === '123') {
+    next();
+  } else {
+    res.status(401).json({
+      status: 'error',
+      message: `Not Authorized , please provide correct key`,
+    });
   }
-  if (pathname === '/date') {
-    const today = new Date().toDateString();
-    res.write(today);
-  }
-  if (pathname === '/page') {
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.write(page);
-  }
-  if (pathname === '/say-hello') {
-    res.write(`Hello ${query}`);
-  }
-
-  res.end();
 });
 
-server.listen('8080', () => {
-  _('Server is running on port 8080');
+app.get('/', (req, res) => {
+  // _(req.query.name); //` "name=sanjay" -> {name : sanjay}
+  // readFile('./database.json', 'utf8', (err, data) => {
+  //   data = JSON.parse(data);
+  //   if (err) {
+  //     _(err);
+  //     res.status(500).json({
+  //       status: 'error',
+  //       message: 'Internal Server Error',
+  //     });
+  //   } else {
+  //     res.status(200).json({
+  //       status: 'success',
+  //       data,
+  //       message: `${data.length} records found`,
+  //     });
+  //   }
+  // });
+
+  reader((data) => {
+    if (!data) {
+      res.status(500).json({
+        status: 'error',
+        message: 'Internal Server Error',
+      });
+      return;
+    }
+    res.status(200).json({
+      status: 'success',
+      data,
+      message: `${data.length} records found`,
+    });
+  });
+});
+
+app.post('/', (req, res) => {
+  const { body } = req; //` user send  body
+
+  const { name, email, code, person } = body;
+
+  if (!name || !email || !code || !person) {
+    res.status(400).json({
+      status: 'error',
+      message: 'Please provide all the fields i.e name, email, code, person',
+    });
+    return;
+  }
+
+  readFile('./database.json', 'utf8', (err, data) => {
+    data = JSON.parse(data);
+
+    const unique = data.find((item) => item.name === name);
+
+    if (unique) {
+      res.status(400).json({
+        status: 'error',
+        message: 'Name already exists',
+      });
+    }
+
+    if (err) {
+      _(err);
+      res.status(500).json({
+        status: 'error',
+        message: 'Internal Server Error',
+      });
+      return;
+    }
+
+    // const toWrite = [...data, { name, email, code, person }];
+    // const stringified = JSON.stringify(toWrite);
+
+    data.push({ name, email, code, person });
+
+    data = JSON.stringify(data);
+
+    writeFile('./database.json', data, 'utf8', (err) => {
+      if (err) {
+        _(err);
+        res.status(500).json({
+          status: 'error',
+          message: 'Internal Server Error',
+        });
+        return;
+      }
+
+      res.status(201).json({
+        status: 'success',
+        message: `${body.name} added successfully`,
+      });
+    });
+  });
+});
+
+app.listen(PORT, () => {
+  _(`Server is running on port ${PORT}`);
 });
