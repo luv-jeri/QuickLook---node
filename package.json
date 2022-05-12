@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon app.js"
+    "start": "nodemon app.js",
+    "s": "nodemon app.js"
   },
   "keywords": [],
   "author": "",
@@ -14,7 +15,9 @@
   },
   "dependencies": {
     "chalk": "4.1.2",
+    "cors": "^2.8.5",
     "dotenv": "^16.0.1",
-    "epxress": "^0.0.1-security"
+    "epxress": "^0.0.1-security",
+    "morgan": "^1.10.0"
   }
 }
