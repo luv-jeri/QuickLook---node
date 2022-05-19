@@ -1,28 +1,19 @@
-const express = require('express');
-const chalk = require('chalk');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const {
-  sendAllData,
-  addANewStar,
-  updateAStar,
-  deleteAStar,
-} = require('./controllers/startController'); // module.exports = {}
-
-// const controller = require('./controllers/startController');
-
-// console.log(controller);
-
-dotenv.config({
-  path: './config.env',
-});
-
-const { PORT } = process.env;
-
 global.__ = console.log;
 global._ = (_) => {
   __(chalk.blue.bgBlack(_));
 };
+
+const dotenv = require('dotenv');
+dotenv.config({
+  path: './config.env',
+});
+
+const express = require('express');
+const chalk = require('chalk');
+const cors = require('cors');
+//` CONNECT TO DATABASE
+require('./database/connection');
+const startCollection = require('./database/schema/star.js');
 
 const app = express();
 
@@ -35,38 +26,52 @@ app.use(
   })
 );
 
-app.use((req, res, next) => {
-  __(chalk.green(req.method, req.url), chalk.red(new Date().toLocaleString()));
-  next();
-});
+app.post('/', (req, res) => {
+  const body = req.body;
 
-app.use((req, res, next) => {
-  _('Authentication middleware');
-  const { key } = req.query;
-  _(key);
-
-  if (key === '123') {
-    next();
-  } else {
-    res.status(401).json({
-      status: 'error',
-      message: `Not Authorized , please provide correct key`,
+  startCollection
+    .create(body)
+    .then((data) => {
+      res.status(200).json({
+        status: 'success',
+        data,
+      });
+    })
+    .catch((err) => {
+      res.status(500).json({
+        status: 'error',
+        error: err,
+      });
     });
-  }
 });
 
-app
-  .route('api/v1/')
-  .get(sendAllData)
-  .post(addANewStar)
-  .delete(deleteAStar)
-  .patch(updateAStar);
+app.get('/', (req, res) => {
+  startCollection.find().then((data) => {
+    res.status(200).json({
+      status: 'success',
+      data,
+    });
+  });
+});
 
-// app.get('/', sendAllData);
-// app.post('/', addANewStar);
-// app.patch('/', updateAStar);
-// app.delete('/', deleteAStar);
-
+const { PORT } = process.env;
 app.listen(PORT, () => {
   _(`Server is running on port ${PORT}`);
 });
+
+// const user = new mongoose.Schema({
+//   name: String,
+//   email: String,
+//   phoneNumber: Number,
+// });
+
+// const userModal = mongoose.model('cars', user);
+
+// userModal.create({
+//   name: 'Mukesh',
+//   email: 'mukesh@gmail.com',
+// });
+
+// userModal.find().then((data) => {
+//   console.log(data);
+// });
