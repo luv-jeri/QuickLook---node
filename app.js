@@ -13,7 +13,8 @@ const chalk = require('chalk');
 const cors = require('cors');
 //` CONNECT TO DATABASE
 require('./database/connection');
-const startCollection = require('./database/schema/star.js');
+const Todo = require('./database/schema/todo.schema');
+const { addTodo } = require('./controllers/todo.controller');
 
 const app = express();
 
@@ -26,52 +27,19 @@ app.use(
   })
 );
 
-app.post('/', (req, res) => {
-  const body = req.body;
-
-  startCollection
-    .create(body)
-    .then((data) => {
-      res.status(200).json({
-        status: 'success',
-        data,
-      });
-    })
-    .catch((err) => {
-      res.status(500).json({
-        status: 'error',
-        error: err,
-      });
-    });
-});
-
-app.get('/', (req, res) => {
-  startCollection.find().then((data) => {
+app
+  .route('/')
+  .post(addTodo)
+  .get(async (req, res) => {
+    const documents = await Todo.find();
     res.status(200).json({
-      status: 'success',
-      data,
+      message: 'data found',
+      data: documents,
     });
   });
-});
 
 const { PORT } = process.env;
+
 app.listen(PORT, () => {
   _(`Server is running on port ${PORT}`);
 });
-
-// const user = new mongoose.Schema({
-//   name: String,
-//   email: String,
-//   phoneNumber: Number,
-// });
-
-// const userModal = mongoose.model('cars', user);
-
-// userModal.create({
-//   name: 'Mukesh',
-//   email: 'mukesh@gmail.com',
-// });
-
-// userModal.find().then((data) => {
-//   console.log(data);
-// });
