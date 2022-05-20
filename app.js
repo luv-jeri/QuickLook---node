@@ -13,8 +13,8 @@ const chalk = require('chalk');
 const cors = require('cors');
 //` CONNECT TO DATABASE
 require('./database/connection');
-const Todo = require('./database/schema/todo.schema');
-const { addTodo } = require('./controllers/todo.controller');
+
+const { addTodo, getTodo, updateTodo } = require('./controllers/todo.controller');
 
 const app = express();
 
@@ -27,16 +27,7 @@ app.use(
   })
 );
 
-app
-  .route('/')
-  .post(addTodo)
-  .get(async (req, res) => {
-    const documents = await Todo.find();
-    res.status(200).json({
-      message: 'data found',
-      data: documents,
-    });
-  });
+app.route('/').post(addTodo).get(getTodo).patch(updateTodo);
 
 const { PORT } = process.env;
 
