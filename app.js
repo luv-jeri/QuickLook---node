@@ -3,6 +3,13 @@ global._ = (_) => {
   __(chalk.blue.bgBlack(_));
 };
 
+global._catcher = (fn) => {
+  const toReturn = (req, res, next) => {
+    fn(req, res, next).catch((e) => next(e));
+  };
+  return toReturn;
+};
+
 const dotenv = require('dotenv');
 dotenv.config({
   path: './config.env',
@@ -14,12 +21,22 @@ const cors = require('cors');
 //` CONNECT TO DATABASE
 require('./database/connection');
 
-const { addTodo, getTodo, updateTodo } = require('./controllers/todo.controller');
+const {
+  addTodo,
+  getTodo,
+  updateTodo,
+  deleteTodo,
+} = require('./controllers/todo.controller');
 
 const app = express();
 
 // `Middleware
 app.use(express.json()); // to parse json
+
+app.use((req, res, next) => {
+  console.log('Middleware');
+  next();
+});
 
 app.use(
   cors({
@@ -27,7 +44,22 @@ app.use(
   })
 );
 
-app.route('/').post(addTodo).get(getTodo).patch(updateTodo);
+app.route('/').post(addTodo).get(getTodo).patch(updateTodo).delete(deleteTodo);
+
+app.route('*').all((req, res) => {
+  res.status(404).json({
+    status: 'error',
+    message: 'Route not found',
+  });
+});
+
+app.use((err, req, res, next) => {
+  console.log('Error Middleware');
+  res.status(500).json({
+    status: 'error',
+    message: err,
+  });
+});
 
 const { PORT } = process.env;
 
