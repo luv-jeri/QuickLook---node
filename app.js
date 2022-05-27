@@ -5,7 +5,10 @@ global._ = (_) => {
 
 global._catcher = (fn) => {
   const toReturn = (req, res, next) => {
-    fn(req, res, next).catch((e) => next(e));
+    fn(req, res, next).catch((e) => {
+      console.log(e);
+      next(e);
+    });
   };
   return toReturn;
 };
@@ -21,12 +24,8 @@ const cors = require('cors');
 //` CONNECT TO DATABASE
 require('./database/connection');
 
-const {
-  addTodo,
-  getTodo,
-  updateTodo,
-  deleteTodo,
-} = require('./controllers/todo.controller');
+const todoRouter = require('./routes/todo.routes');
+const userRouter = require('./routes/user.routes');
 
 const app = express();
 
@@ -37,6 +36,10 @@ app.use((req, res, next) => {
   console.log('Middleware');
   next();
 });
+app.use('/test ', (req, res, next) => {
+  console.log('TEST Middleware');
+  next();
+});
 
 app.use(
   cors({
@@ -44,12 +47,13 @@ app.use(
   })
 );
 
-app.route('/').post(addTodo).get(getTodo).patch(updateTodo).delete(deleteTodo);
+app.use('/api/v1/todo', todoRouter);
+app.use('/api/v1/user', userRouter);
 
 app.route('*').all((req, res) => {
   res.status(404).json({
     status: 'error',
-    message: 'Route not found',
+    message: 'Resource not found',
   });
 });
 
